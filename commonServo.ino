@@ -1,8 +1,7 @@
 #include<Servo.h>
-class YokoServo
+class YokoESC
 {
 public:
-	uint16_t newMicroseconds;
 	bool stopIfTrue;
 private:
 	Servo servo;
@@ -11,6 +10,7 @@ private:
 	const uint16_t stopMicroseconds;
 	const uint16_t minimumMicroseconds;
 	const uint16_t maximumMicroseconds;
+	uint16_t newMicroseconds;
 	uint16_t lastMicroseconds;
 	bool filterIfTrue;
 public:
@@ -33,15 +33,31 @@ public:
 	{
 		if(stopIfTrue==true)
 		{
-			servo.writeMicroseconds(stopMicroseconds);
-			return stopMicroseconds;
+			newMicroseconds=stopMicroseconds;
 		}
-		if(filterIfTrue)_filter();
+		else
+		{
+			newMicroseconds=microseconds;
+			if(filterIfTrue)_filter();
+		}
 		servo.writeMicroseconds(_constrain(newMicroseconds));
-		lastMicroseconds=newMicroseconds;
+		updateMicroseconds();
 		return newMicroseconds;
 	}
+	void stop()
+	{
+		stopIfTrue=true;
+		servo.writeMicroseconds(stopMicroseconds);
+		newMicroseconds=stopMicroseconds;
+		updateMicroseconds();
+		return;
+	}
 private:
+	void updateMicroseconds()
+	{
+		lastMicroseconds=newMicroseconds;
+		return;
+	}
 	void _filter()
 	{
 		newMicroseconds=newMicroseconds*0.05f+lastMicroseconds*0.95f;
